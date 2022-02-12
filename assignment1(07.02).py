@@ -51,19 +51,19 @@ def construct_graph_connections(coord_list, radius):
     :param radius: int
     :return: 2D np_array with the indices of the connected cities, 1D np_array with the distances between these cities
     """
-    outputIndices = []
-    outputDistance = []
+    output_indices = []
+    output_distance = []
 
-    for indiceI, i in enumerate(coord_list):  # loop 1: select city 1: iterate over all cities
-        indiceJ = indiceI+1
-        while indiceJ < len(coord_list):  # loop 2: select city 2: iterate over all cities that loop1 haven't checked jet
-            distance = np.sqrt(np.square(coord_list[indiceJ, 0] - i[0]) + np.square(coord_list[indiceJ, 1] - i[1]))  # calculates distance between city 1 and city 2
-            if 0 < distance < radius:
-                outputIndices.append((indiceI, indiceJ))  # appends Indices of the city if they are in the radius
-                outputDistance.append(distance)
-            indiceJ = indiceJ+1  # iteration for while loop
+    for indice_city_i, coord_city_i in enumerate(coord_list):  # loop 1: select city i: iterate over all cities
+        indice_city_j = indice_city_i+1
+        while indice_city_j < len(coord_list):  # loop 2: select city j: iterate over all cities that loop1 haven't checked jet
+            distance = np.sqrt(np.square(coord_list[indice_city_j, 0] - coord_city_i[0]) + np.square(coord_list[indice_city_j, 1] - coord_city_i[1]))  # calculates distance between city 1 and city 2
+            if distance < radius:
+                output_indices.append((indice_city_i, indice_city_j))  # appends Indices of the city if they are in the radius
+                output_distance.append(distance)
+            indice_city_j = indice_city_j+1  # iteration for while loop
 
-    return np.array(outputIndices), np.array(outputDistance)
+    return np.array(output_indices), np.array(output_distance)
 
 
 def construct_fast_graph_connections(coord_list, radius):
@@ -75,31 +75,31 @@ def construct_fast_graph_connections(coord_list, radius):
     :return: 2D np_array with the indices of the connected cities, 1D np_array with the distances between these cities
     """
     kdTree = cKDTree(coord_list)
-    indicesRadius = kdTree.query_ball_point(coord_list, radius)
+    indices_radius = kdTree.query_ball_point(coord_list, radius)
     indices = []
-    dist = []
+    distance = []
     k = 0
-    while k < len(indicesRadius):  # pointer of the line in indicesRadius corresponds to Indices_city1
-        for i in indicesRadius[k]:  # iterate over every element in line corresponds to Indices_city2
+    while k < len(indices_radius):  # pointer of the line in indices_radius corresponds to Indices_city1
+        for i in indices_radius[k]:  # iterate over every element in line corresponds to Indices_city2
             if k != i:  # to eliminate city1 = city2
                 indices.append((k, i))
-                dist.append(np.linalg.norm(coord_list[k] - coord_list[i]))
+                distance.append(np.linalg.norm(coord_list[k] - coord_list[i]))
         k += 1  # iteration for while loop
 
-    return np.array(indices), np.array(dist)
+    return np.array(indices), np.array(distance)
 
 
-def construct_graph(indices, distance, N):
+def construct_graph(indices, distance, n):
     """
     creates a matrix of the connections
 
     :param indices: 2D np_array with the indices of the connected cities
     :param distance: 1D np_array with the distances between these cities
-    :param N: shape of matrix = number of cities
+    :param n: shape of matrix = number of cities
     :return: matrix where the indice of the row equals the indice of the first city and the indice of the coloumn equals the second city. The element in this slot is the distance between them.
     """
 
-    output = csr_matrix((distance, (indices[:, 0], indices[:, 1])), shape=(N, N)).toarray()
+    output = csr_matrix((distance, (indices[:, 0], indices[:, 1])), shape=(n, n)).toarray()
 
     return output
 
@@ -168,15 +168,15 @@ def plot_points(coord_list, indices, path):
         y_values.append(coord_list[i, 1])
     ax.plot(x_values,y_values, color="blue")
 
-    return plt.show()
+    return plt
 
 
 ###########################################################################################
 #data
-file = "GermanyCities.txt"
-radius = 0.0025
-start_node =1573 #311
-end_node = 10584 #702
+file = "SampleCoordinates.txt"
+radius = 0.08
+start_node = 0 #1573 #311
+end_node = 5 #10584 #702
 
 #reads coordinate file
 start_time = time.time()
@@ -207,6 +207,6 @@ print("time: find_shortest_path(): %s seconds" % (time.time() - start_time))
 
 #plot map
 start_time = time.time()
-plot_points(array_cities, indices, path)
+plot = plot_points(array_cities, indices, path)
 print("time: plot_points(): %s seconds" % (time.time() - start_time))
-
+plot.show()
