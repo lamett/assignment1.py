@@ -79,9 +79,9 @@ def construct_fast_graph_connections(coord_list, radius):
     indices = []
     distance = []
     k = 0
-    while k < len(indices_radius):  # pointer of the line in indices_radius corresponds to Indices_city1
+    for k in range(len(indices_radius)):  # pointer of the line in indices_radius corresponds to Indices_city1
         for i in indices_radius[k]:  # iterate over every element in line corresponds to Indices_city2
-            if k != i:  # to eliminate city1 = city2
+            if i < k:  #to prevent doublechecking the pairs of citys
                 indices.append((k, i))
                 distance.append(np.linalg.norm(coord_list[k] - coord_list[i]))
         k += 1  # iteration for while loop
@@ -130,7 +130,7 @@ def find_shortest_path(graph, start_node, end_node): #hungary: start:311 end:702
     return path_array, distance_start_end
 
 
-def plot_points(coord_list, indices, path):
+def plot_points(coord_list, indices, path, asp):
     """
     plots the points of the coordinates list, the connections between the cities in the radius, the shortest path
 
@@ -168,15 +168,21 @@ def plot_points(coord_list, indices, path):
         y_values.append(coord_list[i, 1])
     ax.plot(x_values,y_values, color="blue")
 
+    ax.set_aspect(asp)  # set aspect ratio
     return plt
 
 
 ###########################################################################################
 #data
-file = "SampleCoordinates.txt"
-radius = 0.08
-start_node = 0 #1573 #311
-end_node = 5 #10584 #702
+file = "GermanyCities.txt"
+radius = 0.0025
+start_node = 1573 #311
+end_node = 10584 #702
+
+#germany aspect ratio = 0.9
+#hungary aspect ratio = 1.1
+#sample aspect ratio = 1
+aspect_ratio = 0.9
 
 #reads coordinate file
 start_time = time.time()
@@ -184,14 +190,14 @@ array_cities = read_coordinate_file(file)
 print("time: read_coordinate_file(): %s seconds" % (time.time() - start_time))
 
 #construct graph connections !fast!
-#start_time = time.time()
-#indices, distances = construct_fast_graph_connections(array_cities, radius)
-#print("time: construct fast_graph_connections(): %s seconds" % (time.time() - start_time))
+start_time = time.time()
+indices, distances = construct_fast_graph_connections(array_cities, radius)
+print("time: construct fast_graph_connections(): %s seconds" % (time.time() - start_time))
 
 # constructs graph connections
-start_time = time.time()
-indices, distances = construct_graph_connections(array_cities, radius)
-print("time: construct_graph_connections(): %s seconds" % (time.time() - start_time))
+#start_time = time.time()
+#indices, distances = construct_graph_connections(array_cities, radius)
+#print("time: construct_graph_connections(): %s seconds" % (time.time() - start_time))
 
 #csr-matrix erstellen
 start_time = time.time()
@@ -207,6 +213,7 @@ print("time: find_shortest_path(): %s seconds" % (time.time() - start_time))
 
 #plot map
 start_time = time.time()
-plot = plot_points(array_cities, indices, path)
+plot = plot_points(array_cities, indices, path, aspect_ratio)
 print("time: plot_points(): %s seconds" % (time.time() - start_time))
 plot.show()
+
